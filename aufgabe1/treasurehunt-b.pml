@@ -28,8 +28,8 @@ byte trap;
 inline choose_valid_location(p_location) {
 	byte x, y;
 	do
-	::  select(x: 1.. SIZE-1);
-		select(y: 1.. SIZE-1);
+	::  select(x: 0.. SIZE-1);
+		select(y: 0.. SIZE-1);
 		if
 		:: (treasureMap[x].row[y] == 0) && 
 			((x+1 < SIZE && treasureMap[x+1].row[y] != 0) ||
@@ -37,12 +37,11 @@ inline choose_valid_location(p_location) {
 			(y+1 < SIZE && treasureMap[x].row[y+1] != 0) || 
 			(y>0 && treasureMap[x].row[y-1] != 0)) -> 
 			if 
-			:: _pid == professor_pid && y * SIZE + x + 1 == trap -> skip;
+			:: _pid == professor_pid && y * SIZE + x == trap -> skip;
 			:: else -> p_location = y * SIZE + x; break;
 			fi;
 		:: else -> skip;
 		fi
-	:: else -> skip;
 	od
 }
 
@@ -52,33 +51,30 @@ proctype professor() {
 	professor_pid = _pid;
 	byte nextLocation;
 	byte assistantLocation;
-	byte nextLocationWord;
 	do
 	:: 	printf("Neue Runde");
 		choose_valid_location(nextLocation);
-		nextLocationWord = nextLocation + 1; // Wort wird verschickt 
-		walkieTalkie ! nextLocationWord;
+		nextLocation++; // Wort wird verschickt 
+		walkieTalkie ! nextLocation;
 		//warte auf antwort vom assistant
 		walkieTalkie ? assistantLocation;
 		
 		if
-		:: assistantLocation == nextLocationWord -> 
+		:: assistantLocation == nextLocation -> 
 			treasureMap[(nextLocation - 1) % SIZE].row[(nextLocation - 1)/ SIZE] = 2; //richtiges Feld
 		:: else -> 
 			treasureMap[(assistantLocation - 1) % SIZE].row[(assistantLocation - 1) / SIZE] = 1;//falsches Feld
 		fi
 		
 		if 
-		:: assistantLocation == trap ->
-		trapSignal:
-			printf("Die Falle wurde ausgelöst"); 
-			break;
-		:: assistantLocation == exit -> 
-		exitSignal:
-			printf("Der Ausgang wurde gefunden");
-			break;
-		:: else -> 
-			skip;
+			:: assistantLocation == trap + 1 ->
+				printf("Die Falle wurde ausgelöst"); 
+				break; 
+			:: assistantLocation == exit + 1 -> 
+				printf("Der Ausgang wurde gefunden");
+				break;
+			:: else -> 
+				skip;
 		fi
 	od		
 	// ToDo: Aufgabe 1b)
@@ -98,30 +94,20 @@ proctype assistant() {
 }
 
 init {
-	bool foundTrap = false;
-	byte placeTrapX, placeTrapY, placeTrap;
-		//select(placeTrapX: 1 .. SIZE-1);
-		//select(placeTrapY: 1 .. SIZE-1);
-	for(placeTrapX : 1 .. SIZE-1){
-		for (placeTrapY : 1 .. SIZE-1){
-			placeTrap = placeTrapY * SIZE + placeTrapX + 1;
-			if
-			:: placeTrap != treasureChest && 
-				placeTrap != key && 
-				placeTrap != exit -> 
-				trap = placeTrap; foundTrap = true;
-			:: else -> skip;
-			fi
-		}
-		if
-		:: foundTrap == true -> break;
-		:: else -> skip;
-		fi
-	}
-	if
-	:: foundTrap == true -> skip; //block
-	fi
-
+	int placeTrapX, placeTrapY, placeTrap;
+	do
+	:: select(placeTrapX: 0 .. SIZE-1);
+	   select(placeTrapY: 0 .. SIZE-1);
+	   placeTrap = placeTrapY * SIZE + placeTrapX;
+	   if
+	   :: placeTrap != 0 &&
+	   	  placeTrap != treasureChest && 
+		  placeTrap != key && 
+		  placeTrap != exit -> 
+		  trap = placeTrap; break;
+	   :: else -> skip;
+	   fi
+	od
 	treasureMap[0].row[0] = 1;
 	atomic{
 	  run professor();

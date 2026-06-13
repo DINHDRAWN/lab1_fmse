@@ -1,4 +1,6 @@
 spin: preprocessing failed gcc -std=gnu99 -E -x c "treasurehunt-XXX.pml" > "pan.pre"
 spin -a treasurehunt-XXX.pml
-gcc -DNOREDUCE -Wno-format-overflow -o pan pan.c
-spin -t -p -l -g -r -s treasurehunt-b.pml
+gcc -DNOREDUCE -Wno-format-overflow -o pan pan.c or 
+gcc −o pan pan.c
+spin -t -p -l -g -r -s treasurehunt-XXX.pml
+or spin −t −p −l treasurehund-XXX.pml  // to run verification of faulty programm

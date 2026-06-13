@@ -27,20 +27,24 @@ byte trap;
 // Auswahl eines gültigen Feldes/Wortes
 inline choose_valid_location(p_location) {
 	byte x, y;
-	select(x : 0 .. SIZE-1);
-	select(y : 0 .. SIZE-1);
-	if
-	:: (treasureMap[x].row[y] == 0) && 
-		((x+1 < SIZE && treasureMap[x+1].row[y] != 0) ||
-		(x>0 && treasureMap[x-1].row[y] != 0) ||
-		(y+1 < SIZE && treasureMap[x].row[y+1] != 0) || 
-		(y>0 && treasureMap[x].row[y-1] != 0)) -> 
-		if 
-			:: _pid == professor_pid && y * SIZE + x + 1== trap -> skip;
-			:: else -> p_location = y * SIZE + x + 1; break;
-		fi;
-	fi
+	do
+	::  select(x: 0.. SIZE-1);
+		select(y: 0.. SIZE-1);
+		if
+		:: (treasureMap[x].row[y] == 0) && 
+			((x+1 < SIZE && treasureMap[x+1].row[y] != 0) ||
+			(x>0 && treasureMap[x-1].row[y] != 0) ||
+			(y+1 < SIZE && treasureMap[x].row[y+1] != 0) || 
+			(y>0 && treasureMap[x].row[y-1] != 0)) -> 
+			if 
+			:: _pid == professor_pid && y * SIZE + x == trap -> skip;
+			:: else -> p_location = y * SIZE + x; break;
+			fi;
+		:: else -> skip;
+		fi
+	od
 }
+
 
 proctype professor() {
 	// ToDo: Aufgabe 1b)
