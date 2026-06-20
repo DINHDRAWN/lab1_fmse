@@ -19,7 +19,12 @@ init {
     chan channels[5] = [0] of { byte, byte};
 
     atomic {
-        run satellite(NONE, channels[0], up_right);
+        run satellite(NONE, channels[0], up_right);// satellite 1
+        run satellite(channels[0], channels[1], up_right) //satellite 2
+        run satellite(channels[1], channels[2], right) //satellite 3
+        run satellite(channels[2], channels[3], up) //satellite 4
+        run satellite(channels[3], channels[4], left) //satellite 5
+        run satellite(channels[4], NONE, left) //satellite 6
         // TODO: Aufbau der Satellitenformation 2a)
     }
     
